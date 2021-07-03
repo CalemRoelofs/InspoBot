@@ -1,29 +1,59 @@
 import csv
+import logging
+import os
 import random
 import time
 
 import requests
 
+from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
+from typing import Tuple
+
+
+logger = logging.getLogger(__name__)
+
+
+class Font:
+    font_file: str
+    font_colour: Tuple[int, int, int]
+    font_shadow: Tuple[int, int, int]
+    font_size: int
+
+    def __init__(
+        self,
+        font_file: str,
+        font_colour: Tuple[int, int, int],
+        font_shadow: Tuple[int, int, int],
+        font_size: int,
+    ) -> None:
+        self.font_file = font_file
+        self.font_colour = font_colour
+        self.font_shadow = font_shadow
+        self.font_size = font_size
 
 
 def get_image(w: int, h: int):
     response = requests.get(f"https://source.unsplash.com/random/{w}x{h}")
     if response.status_code == 200:
-        filename = f"{time.time()}.jpg"
-        with open(filename, "wb") as imagefile:
-            for chunk in response:
-                imagefile.write(chunk)
-        return filename
+        return response.content
     else:
-        return None
+        logging.error(
+            f"Error getting image from Unisplash! Response: ({response.status_code})"
+        )
+        response.raise_for_status()
+        quit()
 
 
 def get_quote():
-    with open("quotes_all.csv", "r") as quotes_csv:
-        quotes = list(csv.reader(quotes_csv, delimiter=";"))[2:]
-        index = random.randint(0, len(quotes))
-        return quotes[index][0]
+    try:
+        with open("quotes_all.csv", "r") as quotes_csv:
+            quotes = list(csv.reader(quotes_csv, delimiter=";"))[2:]
+            index = random.randint(0, len(quotes))
+            return quotes[index][0]
+    except FileNotFoundError:
+        logging.error("Cannot find 'quotes_all.csv' file!\nExiting...")
+        quit()
 
 
 def block_quote(quote: str, line_length: int):
@@ -42,37 +72,49 @@ def block_quote(quote: str, line_length: int):
     return lines
 
 
-def draw_text(filename: str, image_text: list[str]):
-    image = Image.open(filename)
+def draw_text(image_bytes: bytes, font_data: Font, image_text: list[str]):
+    image_object = BytesIO(image_bytes)
+    filename = f"{time.time()}.jpg"
+
+    image = Image.open(image_object)
     draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype("fonts/Risalah Cinta.otf", 60)
+    try:
+        font = ImageFont.truetype(f"fonts/{font_data.font_file}", font_data.font_size)
+    except OSError:
+        logging.error(
+            f"Cannot find font '{font_data.font_file}'! Did you put it in the 'fonts' directory?"
+        )
+        quit()
+
     for index, line in enumerate(image_text):
-        draw.text((50, 50 * (index + 1)), line, (0, 0, 0), font=font)
-        draw.text((48, (50 * (index + 1)) - 2), line, (240, 230, 140), font=font)
-    draw.text((400, 500), "- Michael Scott", (0, 0, 0), font=font)
-    draw.text((398, 498), "- Michael Scott", (240, 230, 140), font=font)
+        draw.text((50, 50 * (index + 1)), line, font_data.font_shadow, font=font)
+        draw.text((48, (50 * (index + 1)) - 2), line, font_data.font_colour, font=font)
+    draw.text((400, 500), "- Michael Scott", font_data.font_shadow, font=font)
+    draw.text((398, 498), "- Michael Scott", font_data.font_colour, font=font)
     image.save(filename)
     return None
 
 
 def main():
-    filename = get_image(800, 600)
-    if not filename:
+    image_bytes = get_image(800, 600)
+    if not image_bytes:
         print("Error getting image from Unsplash!")
         quit()
 
     quote = get_quote()
     if not quote:
-        print("Error getting quote from quotes.rest!")
+        print("Error getting quote from quotes_all.csv!")
         quit()
 
     split_quote = block_quote(quote, 35)
-    draw_text(filename, split_quote)
+    font_file = random.choice(os.listdir("fonts"))
+    colour = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    shadow = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    font = Font(font_file, colour, shadow, 30)
+    draw_text(image_bytes, font, split_quote)
 
     return None
 
 
 if __name__ == "__main__":
-    for x in range(40):
-        time.sleep(0.5)
-        main()
+    main()
