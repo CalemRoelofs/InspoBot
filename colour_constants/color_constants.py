@@ -1,5 +1,7 @@
 """Provide RGB color constants and a colors dictionary with
-elements formatted: colors[colorname] = CONSTANT"""
+elements formatted: colors[colorname] = CONSTANT
+Graciously taken from: 
+https://www.webucator.com/article/python-color-constants-module/"""
 from collections import namedtuple, OrderedDict
 
 Color = namedtuple("RGB", "red, green, blue")
