@@ -1,2 +1,5 @@
 .vscode/
+output/
 *.zip
+*.jpg
+scratchpad.py
