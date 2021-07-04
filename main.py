@@ -149,16 +149,23 @@ def randomizer():
 
 
 def controlled(
-    font_file: str, font_colour: colour.RGB, font_shadow: colour.RGB, font_size: int
+    font_file: str,
+    font_colour: colour.RGB,
+    font_shadow: colour.RGB,
+    font_size: int,
+    show_author: bool = False,
 ):
     image_bytes = get_image(800, 600)
     quote = get_quote()
     split_quote = block_quote(quote[0], 35)
     font = Font(font_file, font_colour, font_shadow, font_size)
-    draw_text(image_bytes, font, split_quote, author=quote[1])
+    if show_author:
+        draw_text(image_bytes, font, split_quote, author=quote[1])
+    else:
+        draw_text(image_bytes, font, split_quote)
 
     return None
 
 
 if __name__ == "__main__":
-    controlled("Sour Dough.ttf", colour.WHITE, colour.BLACK, 50)
+    controlled("Sweet Iced Coffee.ttf", colour.WHITE, colour.BLACK, 50, False)
