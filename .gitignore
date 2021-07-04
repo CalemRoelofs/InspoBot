@@ -3,3 +3,4 @@ output/
 *.zip
 *.jpg
 scratchpad.py
+*.pyc
