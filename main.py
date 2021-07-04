@@ -3,12 +3,12 @@ import logging
 import os
 import random
 import time
-
 import requests
 
+
+from colour_constants import color_constants as colour
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
-from typing import Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -16,15 +16,15 @@ logger = logging.getLogger(__name__)
 
 class Font:
     font_file: str
-    font_colour: Tuple[int, int, int]
-    font_shadow: Tuple[int, int, int]
+    font_colour: colour.RGB
+    font_shadow: colour.RGB
     font_size: int
 
     def __init__(
         self,
         font_file: str,
-        font_colour: Tuple[int, int, int],
-        font_shadow: Tuple[int, int, int],
+        font_colour: colour.RGB,
+        font_shadow: colour.RGB,
         font_size: int,
     ) -> None:
         self.font_file = font_file
@@ -50,9 +50,20 @@ def get_quote():
         with open("quotes_all.csv", "r") as quotes_csv:
             quotes = list(csv.reader(quotes_csv, delimiter=";"))[2:]
             index = random.randint(0, len(quotes))
-            return quotes[index][0]
+            return quotes[index]
     except FileNotFoundError:
         logging.error("Cannot find 'quotes_all.csv' file!\nExiting...")
+        quit()
+
+
+def get_shitpost():
+    try:
+        with open("shitposts.csv", "r") as quotes_csv:
+            quotes = list(csv.reader(quotes_csv, delimiter=";"))
+            index = random.randint(0, len(quotes))
+            return quotes[index][0]
+    except FileNotFoundError:
+        logging.error("Cannot find 'shitposts.csv' file!\nExiting...")
         quit()
 
 
@@ -72,12 +83,31 @@ def block_quote(quote: str, line_length: int):
     return lines
 
 
-def draw_text(image_bytes: bytes, font_data: Font, image_text: list[str]):
-    image_object = BytesIO(image_bytes)
-    filename = f"{time.time()}.jpg"
+def draw_text(
+    image_bytes: bytes,
+    font_data: Font,
+    image_text: list[str],
+    author: str = "Michael Scott",
+):
+    # Unpack the colour.RGB into a tuple so they can work
+    # with PIL ImageDraw RGB values
+    font_colour = (
+        font_data.font_colour.red,
+        font_data.font_colour.green,
+        font_data.font_colour.blue,
+    )
+    font_shadow = (
+        font_data.font_shadow.red,
+        font_data.font_shadow.green,
+        font_data.font_shadow.blue,
+    )
 
+    # Parse the image bytes into a BytesIO object
+    image_object = BytesIO(image_bytes)
     image = Image.open(image_object)
     draw = ImageDraw.Draw(image)
+
+    # Try to load the font file
     try:
         font = ImageFont.truetype(f"fonts/{font_data.font_file}", font_data.font_size)
     except OSError:
@@ -86,35 +116,49 @@ def draw_text(image_bytes: bytes, font_data: Font, image_text: list[str]):
         )
         quit()
 
+    # Draw the main body of text line by line
     for index, line in enumerate(image_text):
-        draw.text((50, 50 * (index + 1)), line, font_data.font_shadow, font=font)
-        draw.text((48, (50 * (index + 1)) - 2), line, font_data.font_colour, font=font)
-    draw.text((400, 500), "- Michael Scott", font_data.font_shadow, font=font)
-    draw.text((398, 498), "- Michael Scott", font_data.font_colour, font=font)
-    image.save(filename)
+        draw.text((50, 50 * (index + 1)), line, font_shadow, font=font)
+        draw.text((48, (50 * (index + 1)) - 2), line, font_colour, font=font)
+
+    # Draw the author name in the bottom right corner
+    draw.text((500, 500), f"- {author}", font_shadow, font=font)
+    draw.text((498, 498), f"- {author}", font_colour, font=font)
+
+    image.save(f"output/{time.time()}.jpg")
     return None
 
 
-def main():
+def randomizer():
     image_bytes = get_image(800, 600)
-    if not image_bytes:
-        print("Error getting image from Unsplash!")
-        quit()
 
     quote = get_quote()
-    if not quote:
-        print("Error getting quote from quotes_all.csv!")
-        quit()
 
     split_quote = block_quote(quote, 35)
     font_file = random.choice(os.listdir("fonts"))
-    colour = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    shadow = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    font = Font(font_file, colour, shadow, 30)
+    font_colour = colour.RGB(
+        random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+    )
+    font_shadow = colour.RGB(
+        random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+    )
+    font = Font(font_file, font_colour, font_shadow, 40)
     draw_text(image_bytes, font, split_quote)
 
     return None
 
 
+def controlled(
+    font_file: str, font_colour: colour.RGB, font_shadow: colour.RGB, font_size: int
+):
+    image_bytes = get_image(800, 600)
+    quote = get_quote()
+    split_quote = block_quote(quote[0], 35)
+    font = Font(font_file, font_colour, font_shadow, font_size)
+    draw_text(image_bytes, font, split_quote, author=quote[1])
+
+    return None
+
+
 if __name__ == "__main__":
-    main()
+    controlled("Sour Dough.ttf", colour.WHITE, colour.BLACK, 50)
