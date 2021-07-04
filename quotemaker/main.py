@@ -6,7 +6,7 @@ import time
 import requests
 
 
-from colour_constants import color_constants as colour
+from colour_constants import colour_constants as colour
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 
