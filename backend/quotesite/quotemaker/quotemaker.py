@@ -6,7 +6,7 @@ import time
 import requests
 
 
-from colour_constants import colour_constants as colour
+from .colour_constants import colour_constants as colour
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 
@@ -47,7 +47,8 @@ def get_image(w: int, h: int):
 
 def get_quote():
     try:
-        with open("quotes_all.csv", "r") as quotes_csv:
+        logging.error(os.listdir("."))
+        with open("quotesite/quotemaker/quotes_all.csv", "r") as quotes_csv:
             quotes = list(csv.reader(quotes_csv, delimiter=";"))[2:]
             index = random.randint(0, len(quotes))
             return quotes[index]
@@ -58,7 +59,7 @@ def get_quote():
 
 def get_shitpost():
     try:
-        with open("shitposts.csv", "r") as quotes_csv:
+        with open("./shitposts.csv", "r") as quotes_csv:
             quotes = list(csv.reader(quotes_csv, delimiter=";"))
             index = random.randint(0, len(quotes))
             return quotes[index][0]
@@ -109,7 +110,9 @@ def draw_text(
 
     # Try to load the font file
     try:
-        font = ImageFont.truetype(f"fonts/{font_data.font_file}", font_data.font_size)
+        font = ImageFont.truetype(
+            f"quotesite/quotemaker/fonts/{font_data.font_file}", font_data.font_size
+        )
     except OSError:
         logging.error(
             f"Cannot find font '{font_data.font_file}'! Did you put it in the 'fonts' directory?"
@@ -125,8 +128,9 @@ def draw_text(
     draw.text((500, 500), f"- {author}", font_shadow, font=font)
     draw.text((498, 498), f"- {author}", font_colour, font=font)
 
-    image.save(f"output/{time.time()}.jpg")
-    return None
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 def randomizer():
@@ -160,11 +164,11 @@ def controlled(
     split_quote = block_quote(quote[0], 35)
     font = Font(font_file, font_colour, font_shadow, font_size)
     if show_author:
-        draw_text(image_bytes, font, split_quote, author=quote[1])
+        image = draw_text(image_bytes, font, split_quote, author=quote[1])
     else:
-        draw_text(image_bytes, font, split_quote)
+        image = draw_text(image_bytes, font, split_quote)
 
-    return None
+    return image
 
 
 if __name__ == "__main__":
