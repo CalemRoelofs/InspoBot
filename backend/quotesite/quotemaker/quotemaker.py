@@ -9,6 +9,7 @@ import requests
 from .colour_constants import colour_constants as colour
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
+from typing import List
 
 
 logger = logging.getLogger(__name__)
@@ -87,7 +88,7 @@ def block_quote(quote: str, line_length: int):
 def draw_text(
     image_bytes: bytes,
     font_data: Font,
-    image_text: list[str],
+    image_text: List[str],
     author: str = "Michael Scott",
 ):
     # Unpack the colour.RGB into a tuple so they can work
