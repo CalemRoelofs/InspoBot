@@ -9,9 +9,9 @@
 <body>
     <main>
         <div class="row">
-            <div class="col-sm-3 text-center">
+            <div class="col-lg-3 text-center">
             </div>
-            <div class="col-sm-6">
+            <div class="col-lg-6">
                 <div class="text-center">
                     <h3>Here, have quote stolen by Michael Scott.</h3>
                     <button class="btn btn-outline-dark mb-3" onClick="window.location.reload();">Another one!</button>
@@ -19,8 +19,12 @@
                     <img class="w-100" src="data:image/png;base64, {{image_data}}">
                 </div>
             </div>
-            <div class="col-sm-3">
-
+            <div class="col-lg-3">
+                <form action="/tweet" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="image_data" value="{{ image_data }}" />
+                    <button class="btn btn-primary">Tweet This!</button>
+                </form>
             </div>
         </div>
     </main>
