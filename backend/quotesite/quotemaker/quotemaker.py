@@ -126,8 +126,8 @@ def draw_text(
         draw.text((48, (50 * (index + 1)) - 2), line, font_colour, font=font)
 
     # Draw the author name in the bottom right corner
-    draw.text((500, 500), f"- {author}", font_shadow, font=font)
-    draw.text((498, 498), f"- {author}", font_colour, font=font)
+    draw.text((600, 420), f"- {author}", font_shadow, font=font)
+    draw.text((598, 418), f"- {author}", font_colour, font=font)
 
     buf = BytesIO()
     image.save(buf, format="JPEG")
@@ -160,7 +160,7 @@ def controlled(
     font_size: int,
     show_author: bool = False,
 ):
-    image_bytes = get_image(800, 600)
+    image_bytes = get_image(900, 500)
     quote = get_quote()
     split_quote = block_quote(quote[0], 35)
     font = Font(font_file, font_colour, font_shadow, font_size)
