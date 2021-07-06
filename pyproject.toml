@@ -9,6 +9,8 @@ python = "^3.9"
 requests = "^2.25.1"
 Pillow = "^8.3.0"
 Django = "^3.2.5"
+tweepy = "^3.10.0"
+django-environ = "^0.4.5"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.6b0", allow-prereleases = true}

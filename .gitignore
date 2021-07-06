@@ -5,3 +5,4 @@ output/
 scratchpad.py
 *.pyc
 .sqlite3
+.env
